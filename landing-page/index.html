@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FURIA FanBot | Assistente no Telegram</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --preto: #000000;
+            --dourado: #FFD700;
+            --dourado-escuro: #D4AF37;
+            --cinza: #1A1A1A;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--preto);
+            color: white;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: var(--preto);
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 3px solid var(--dourado);
+        }
+        
+        .logo {
+            transition: transform 0.3s, filter 0.3s;
+        }
+        .logo:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1) drop-shadow(0 0 8px var(--dourado));
+        }
+        
+        h1, h2, h3 {
+            color: var(--dourado);
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+        }
+        
+        .hero {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9)), 
+                        url('https://www.furia.gg/wp-content/uploads/2022/01/furia-bg.jpg');
+            background-size: cover;
+        }
+        
+        .bot-preview {
+            width: 500px;
+            border-radius: 15px;
+            border: 3px solid var(--dourado);
+            box-shadow: 0 0 20px var(--dourado);
+            transition: transform 0.3s;
+        }
+        
+        .bot-preview:hover {
+            transform: scale(1.05);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: var(--dourado);
+            color: var(--preto);
+            padding: 15px 30px;
+            margin: 2rem 0;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            border: 2px solid var(--dourado);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .cta-button:hover {
+            background: transparent;
+            color: var(--dourado);
+            box-shadow: 0 0 15px var(--dourado);
+        }
+        
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            padding: 4rem 2rem;
+            background: var(--preto);
+        }
+        
+        .feature-card {
+            background: var(--cinza);
+            border-radius: 10px;
+            padding: 2rem;
+            width: 300px;
+            text-align: center;
+            border-bottom: 3px solid var(--dourado);
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--dourado);
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--dourado);
+        }
+        
+        .demo-video {
+            background: var(--cinza);
+            padding: 3rem;
+            text-align: center;
+            border-top: 3px solid var(--dourado);
+            border-bottom: 3px solid var(--dourado);
+        }
+        
+        footer {
+            background: var(--preto);
+            padding: 2rem;
+            text-align: center;
+            border-top: 1px solid var(--dourado);
+        }
+        
+        .social-links a {
+            color: var(--dourado);
+            font-size: 1.5rem;
+            margin: 0 10px;
+            transition: all 0.3s;
+        }
+        
+        .social-links a:hover {
+            color: white;
+            text-shadow: 0 0 10px var(--dourado);
+        }
+        
+        .divider {
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--dourado), transparent);
+            margin: 2rem 0;
+        }
+        
+        @media (max-width: 768px) {
+            .features {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .bot-preview {
+                width: 200px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <img src="assets/Furia_Esports_logo (2).png " alt="FURIA Logo" class="logo">
+        <h1>FURIA FANBOT</h1>
+        <p style="font-size: 22px;">Conheça o FURIA FanBot, o assistente no Telegram para fãs de CS:GO.<br> 
+            Com notícias,agenda de jogos, momentos épicos, quiz e stickers para sua coleção.</p>
+    </header>
+    
+    <section class="hero">
+        <div class="preview-container">
+            <div class="preview-slide">
+              <img src="assets/start.png" alt="Comando /start" class="bot-preview">
+              <p style="font-size: 20px;">Menu principal do bot</p>
+            </div>
+            <div class="preview-slide">
+                <img src="assets/momentos.png" alt="Comando /momentos" class="bot-preview">
+                <p style="font-size: 20px;">Veja momentos marcantes vivídos pela equipe da FURIA</p>
+            </div>
+            <div class="preview-container">
+                <div class="preview-slide">
+                    <img src="assets/quiz.png" alt="Comando /quiz" class="bot-preview">
+                    <p style="font-size: 20px;">Quiz para ver se você é um torcedor raiz.</p>
+                </div>
+        <img src="assets/status_e_torcida.png" alt="Preview do Bot" class="bot-preview">
+        <p style="font-size: 20px;">Interação com a torcida em tempo real.</p>
+        <img src="assets/redes_sociais.png" alt="Preview do Bot" class="bot-preview">
+        <p style="font-size: 20px;">Conheça as nossa redes e sites oficias!</p>
+        <h2>CONECTE-SE COM A FURIA</h2>
+        <p>Tudo sobre o time no seu Telegram</p>
+        <div class="divider"></div>
+        <a href="https://t.me/Furiosogg_bot" target="_blank" class="cta-button">
+            <i class="fab fa-telegram"></i> ACESSAR AGORA
+        </a>
+    </section>
+    
+    <section class="features">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h3>JOGOS AO VIVO</h3>
+            <p>Placar atualizado e estatísticas em tempo real</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <h3>TORCIDA VIRTUAL</h3>
+            <p>Gritos de guerra e interação com outros fãs</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <h3>MOMENTOS ÉPICOS</h3>
+            <p>Reviva os melhores plays da FURIA</p>
+        </div>
+    </section>
+    
+    
+    <footer>
+        <div class="social-links">
+            <a href="https://web.telegram.org/a/#8004098032" class="fab fa-telegram"></i></a>
+            <a href="https://www.instagram.com/furiagg/?hl=pt-br" class="fab fa-instagram"></i></a>
+            <a href="https://x.com/FURIA?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor" class="fab fa-twitter"></i></a>
+        </div>
+
+        <p>© 2023 FURIA FanBot | Não afiliado à FURIA Esports</p>
+    </footer>
+</body>
+</html>
