@@ -5,7 +5,6 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ConversationHandler
 from dotenv import load_dotenv
 import os
-
 import asyncio
 
 # Importação dos handlers (funções de comandos e interações)
@@ -15,7 +14,6 @@ from handlers.torcida import torcida_simulada, status_jogo, resposta_livre
 from handlers.quiz import iniciar_quiz, cancelar_quiz, PERGUNTA, receber_resposta
 from handlers.redes_sociais import redes_sociais
 from handlers.momentos import momentos_furia
-
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -29,8 +27,6 @@ nest_asyncio.apply()
 
 # Configuração do logging para monitorar o funcionamento do bot
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-
-
 
 # Cria a aplicação do bot usando o token
 app = ApplicationBuilder().token(TOKEN).build()
@@ -50,27 +46,27 @@ app.add_handler(ConversationHandler(
         PERGUNTA: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_resposta)],
     },
     fallbacks=[CommandHandler("cancelar", cancelar_quiz)],  # Comando para cancelar o quiz
-    ))
+))
 app.add_handler(CommandHandler("figurinhas", figurinhas))  # Comando /figurinhas
 app.add_handler(CommandHandler("statusjogo", status_jogo))  # Comando /statusjogo
 app.add_handler(CommandHandler("redes_sociais", redes_sociais))  # Comando /redes_sociais
 app.add_handler(CommandHandler("noticias", noticias))  # Comando /noticias
 
-    # Adiciona um handler para mensagens de texto gerais (não comandos)
+# Adiciona um handler para mensagens de texto gerais (não comandos)
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, resposta_livre))  # Respostas livres para o bot
 
-    # Exibe uma mensagem no console para informar que o bot está rodando
+# Exibe uma mensagem no console para informar que o bot está rodando
 print("Bot da FURIA rodando no Telegram! ⚡")
 
 # Flask App
 flask_app = Flask(__name__)
-
 
 @flask_app.route('/')
 def index():
     return 'Bot da FURIA está online via webhook!'
 
 
+# Webhook do Telegram bot
 @flask_app.route(f'/{TOKEN}', methods=['POST'])
 async def webhook():
     data = request.get_json(force=True)
@@ -79,11 +75,12 @@ async def webhook():
     return 'ok'
 
 
+# Função para configurar o webhook
 async def setup_webhook():
     await app.bot.set_webhook(f'{URL}/{TOKEN}')
     print(f"Webhook configurado com sucesso em {URL}/{TOKEN}")
 
-
+# Inicializa o servidor e configura o webhook
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(setup_webhook())
