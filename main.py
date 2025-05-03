@@ -41,7 +41,6 @@ bot = Bot(token=TOKEN)
 application = Application.builder().token(TOKEN).build()
 
 
-
 def register_handlers(app):
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("agenda", agenda))
@@ -79,7 +78,7 @@ def webhook():
         update = Update.de_json(request.get_json(), bot)
         application.process_update(update)
         return '', 200
-    return 'Bad request', 400
+    return 'Webhook configurado com sucesso!', 200
 
 
 def set_webhook():
@@ -93,6 +92,7 @@ def set_webhook():
         logger.error(f"Erro ao configurar webhook: {e}")
         raise
 
+
 if __name__ == "__main__":
     # Verifica se as variáveis necessárias estão definidas
     if not TOKEN or not BASE_URL:
@@ -101,6 +101,7 @@ if __name__ == "__main__":
 
     # Configura o webhook
     set_webhook()
-    
+
     # Inicia o servidor Flask
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    
