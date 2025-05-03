@@ -60,10 +60,9 @@ def index():
 
 
 if __name__ == '__main__':
-    # Configura o webhook
     application.run_webhook(
         listen="0.0.0.0",
-        port=5000,
-        webhook_url="https://furia-bot-dfet.onrender.com/webhook",
+        port=int(os.environ.get('PORT', 5000)),
+        webhook_url=os.getenv("URL") + "/webhook",
         drop_pending_updates=True
     )
