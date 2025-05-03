@@ -1,32 +1,20 @@
-import logging
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from telegram import Update
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
     filters,
-    ConversationHandler,
     ContextTypes
 )
-from dotenv import load_dotenv
 import os
-import asyncio
+import logging
+from functools import wraps
 
-# Carrega handlers
-from handlers.commands import start, agenda, elenco, noticias
-from handlers.stickers import gritar, figurinhas
-from handlers.torcida import torcida_simulada, status_jogo, resposta_livre
-from handlers.quiz import iniciar_quiz, cancelar_quiz, PERGUNTA, receber_resposta
-from handlers.redes_sociais import redes_sociais
-from handlers.momentos import momentos_furia
-
-# Configuração inicial
-load_dotenv()
+# Configuração básica
+app = Flask(__name__)
 TOKEN = os.getenv("TOKEN")
-BASE_URL = os.getenv("URL")
-WEBHOOK_URL = f"{BASE_URL}/webhook" if BASE_URL else None
-PORT = int(os.environ.get("PORT", 5000))
+application = Application.builder().token(TOKEN).build()
 
 # Configuração de logging
 logging.basicConfig(
@@ -35,80 +23,47 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Cria aplicação
-application = Application.builder().token(TOKEN).build()
-app = Flask(__name__)
+
+# Decorator para verificar o método HTTP
+def post_only(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if request.method != 'POST':
+            return jsonify({"error": "Method not allowed"}), 405
+        return f(*args, **kwargs)
+    return decorated_function
 
 
-def register_handlers(app):
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("agenda", agenda))
-    app.add_handler(CommandHandler("elenco", elenco))
-    app.add_handler(CommandHandler("gritar", gritar))
-    app.add_handler(CommandHandler("torcida_simulada", torcida_simulada))
-    app.add_handler(CommandHandler("momentos", momentos_furia))
-    
-    app.add_handler(ConversationHandler(
-        entry_points=[CommandHandler("quiz", iniciar_quiz)],
-        states={
-            PERGUNTA: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_resposta)]
-        },
-        fallbacks=[CommandHandler("cancelar", cancelar_quiz)],
-    ))
-    
-    app.add_handler(CommandHandler("figurinhas", figurinhas))
-    app.add_handler(CommandHandler("statusjogo", status_jogo))
-    app.add_handler(CommandHandler("redes_sociais", redes_sociais))
-    app.add_handler(CommandHandler("noticias", noticias))
-    
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, resposta_livre))
-
-
-register_handlers(application)
+@app.route('/webhook', methods=['POST', 'GET'])
+@post_only
+async def webhook():
+    try:
+        # Verifica se o conteúdo é JSON
+        if not request.is_json:
+            return jsonify({"error": "Content-Type must be application/json"}), 400
+        
+        data = request.get_json()
+        update = Update.de_json(data, application.bot)
+        
+        # Processa a atualização
+        await application.process_update(update)
+        return '', 200
+        
+    except Exception as e:
+        logger.error(f"Error processing update: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/')
 def index():
-    return 'FURIA Bot is running!'
+    return "FURIA Bot Webhook - POST requests to /webhook"
 
 
-@app.route('/webhook', methods=['POST'])
-async def webhook():
-    if request.method == "POST":
-        try:
-            json_data = await request.get_json()
-            update = Update.de_json(json_data, application.bot)
-            
-            # Cria um novo loop de evento se necessário
-            try:
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            
-            await application.process_update(update)
-            return '', 200
-        except Exception as e:
-            logger.error(f"Erro no webhook: {str(e)}")
-            return '', 200
-    return '', 403
-
-
-async def set_webhook():
-    await application.bot.set_webhook(
-        url=WEBHOOK_URL,
-        drop_pending_updates=True,
-        max_connections=100
-    )
-
-if __name__ == "__main__":
-    if not TOKEN or not BASE_URL:
-        logger.error("TOKEN e URL devem estar definidos no .env!")
-        exit(1)
-
+if __name__ == '__main__':
     # Configura o webhook
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(set_webhook())
-    
-    # Inicia o servidor
-    app.run(host='0.0.0.0', port=PORT)
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=5000,
+        webhook_url="https://furia-bot-dfet.onrender.com/webhook",
+        drop_pending_updates=True
+    )
