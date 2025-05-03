@@ -80,10 +80,17 @@ def webhook():
         update_data = request.get_json()
         logger.info(f"Recebido update: {update_data}")
         update = Update.de_json(update_data, bot)
-        asyncio.run(application.process_update(update))
+
+        async def process():
+            await application.initialize()
+            await application.process_update(update)
+
+        asyncio.run(process())
+
     except Exception as e:
         logger.error(f"Erro no webhook: {e}")
         return 'Erro interno', 500
+
     return 'ok', 200
 
 
