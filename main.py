@@ -72,13 +72,15 @@ def index():
     return 'FURIA Bot is running!'
 
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/webhook', methods=['POST'])  # ← Note a barra no início
 def webhook():
-    if request.method == 'POST':
+    try:
         update = Update.de_json(request.get_json(), bot)
         application.process_update(update)
         return '', 200
-    return 'Webhook configurado com sucesso!', 200
+    except Exception as e:
+        print(f"ERRO: {e}")  # Log para debug
+        return '', 200  
 
 
 def set_webhook():
