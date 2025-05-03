@@ -1,9 +1,8 @@
 import random
 from telegram import Update
-from telegram.ext import ContextTypes
+from telegram.ext import CallbackContext
 
-# Lista com momentos marcantes da FURIA
-# Cada item é um dicionário com tipo, título e link
+# Lista com momentos marcantes da FURIA (mantida igual)
 momentos = [
     {
         "tipo": "vídeo",
@@ -22,33 +21,29 @@ momentos = [
     }
 ]
 
-
-# Função que será chamada quando o usuário usar o comando /momentos
-async def momentos_furia(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Escolhe aleatoriamente um momento da lista
+# Função síncrona para o comando /momentos
+def momentos_furia(update: Update, context: CallbackContext):
+    # Escolhe aleatoriamente um momento
     momento = random.choice(momentos)
-
-    # Se for vídeo, manda texto com link
+    
+    # Monta a resposta baseada no tipo
     if momento["tipo"] == "vídeo":
-        await update.message.reply_text(
+        update.message.reply_text(
             f"🎥 {momento['titulo']}\nAssista esse momento épico da FURIA: {momento['url']}"
         )
-
-    # Se for imagem, envia como foto (não há imagem no exemplo, mas o código está preparado)
+    
     elif momento["tipo"] == "imagem":
-        await update.message.reply_photo(
+        update.message.reply_photo(
             momento["url"],
             caption=f"📸 {momento['titulo']}"
         )
-
-    # Se for meme, manda como texto com link (igual ao vídeo nesse caso)
+    
     elif momento["tipo"] == "meme":
-        await update.message.reply_text(
-            f"🎥 {momento['titulo']}\nAssista esse momento épico da FURIA: {momento['url']}"
+        update.message.reply_text(
+            f"😂 {momento['titulo']}\nConfira esse meme clássico: {momento['url']}"
         )
-
-    # Se for destaque de jogador, também manda texto com link
+    
     elif momento["tipo"] == "destaque_jogador":
-        await update.message.reply_text(
-            f"💥 {momento['titulo']}\nConfira esse destaque incrível: {momento['url']}"
+        update.message.reply_text(
+            f"💥 {momento['titulo']}\nDestaque incrível: {momento['url']}"
         )

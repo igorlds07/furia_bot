@@ -1,8 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ContextTypes
+from telegram.ext import CallbackContext
 
 
-async def redes_sociais(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def redes_sociais(update: Update, context: CallbackContext):
     # Mensagem com links para as redes sociais
     mensagem = (
         "Para interagir diretamente com a FURIA, você pode acessar as nossas redes e sites oficiais! 📱\n\n"
@@ -21,20 +21,20 @@ async def redes_sociais(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     # Enviar mensagem com os botões
-    await update.message.reply_text(mensagem, reply_markup=reply_markup)
+    update.message.reply_text(mensagem, reply_markup=reply_markup)
 
-    # Enviar os ícones das redes sociais
+    # URLs dos ícones
     whatsapp_icon_url = "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
     instagram_icon_url = "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
 
     # Enviar o ícone do WhatsApp
-    await update.message.reply_photo(
+    update.message.reply_photo(
         whatsapp_icon_url,
         caption="Clique no ícone para conversar com a FURIA pelo WhatsApp! 📱"
     )
 
     # Enviar o ícone do Instagram
-    await update.message.reply_photo(
+    update.message.reply_photo(
         instagram_icon_url,
         caption="Clique no ícone para seguir a FURIA no Instagram! 📸"
     )
