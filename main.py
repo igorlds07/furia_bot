@@ -11,6 +11,7 @@ from telegram.ext import (
 )
 from dotenv import load_dotenv
 import os
+import asyncio
 
 # Carrega handlers
 from handlers.commands import start, agenda, elenco, noticias
@@ -40,7 +41,6 @@ app = Flask(__name__)
 
 
 def register_handlers(app):
-    # Registro de handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("agenda", agenda))
     app.add_handler(CommandHandler("elenco", elenco))
@@ -64,7 +64,6 @@ def register_handlers(app):
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, resposta_livre))
 
 
-# Registra handlers
 register_handlers(application)
 
 
@@ -75,29 +74,41 @@ def index():
 
 @app.route('/webhook', methods=['POST'])
 async def webhook():
-    try:
-        update = Update.de_json(await request.get_json(), application.bot)
-        await application.process_update(update)
-        return '', 200
-    except Exception as e:
-        logger.error(f"Erro no webhook: {e}")
-        return '', 200
+    if request.method == "POST":
+        try:
+            json_data = await request.get_json()
+            update = Update.de_json(json_data, application.bot)
+            
+            # Cria um novo loop de evento se necessário
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            await application.process_update(update)
+            return '', 200
+        except Exception as e:
+            logger.error(f"Erro no webhook: {str(e)}")
+            return '', 200
+    return '', 403
 
 
-def setup_webhook():
-    """Configura o webhook automaticamente"""
-    if WEBHOOK_URL:
-        application.run_webhook(
-            listen="0.0.0.0",
-            port=PORT,
-            webhook_url=WEBHOOK_URL,
-            drop_pending_updates=True
-        )
-
+async def set_webhook():
+    await application.bot.set_webhook(
+        url=WEBHOOK_URL,
+        drop_pending_updates=True,
+        max_connections=100
+    )
 
 if __name__ == "__main__":
     if not TOKEN or not BASE_URL:
         logger.error("TOKEN e URL devem estar definidos no .env!")
         exit(1)
+
+    # Configura o webhook
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(set_webhook())
     
-    setup_webhook()
+    # Inicia o servidor
+    app.run(host='0.0.0.0', port=PORT)
