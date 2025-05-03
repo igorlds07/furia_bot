@@ -1,68 +1,100 @@
-from flask import Flask, request, jsonify
-from telegram import Update
+import logging
+from flask import Flask, request
+from telegram import Update, Bot
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
     filters,
-    ContextTypes
+    ConversationHandler,
+    CallbackContext
 )
+from dotenv import load_dotenv
 import os
-import logging
-from functools import wraps
 
-# Configuração básica
-app = Flask(__name__)
+# Load environment variables
+load_dotenv()
 TOKEN = os.getenv("TOKEN")
-application = Application.builder().token(TOKEN).build()
+BASE_URL = os.getenv("URL")
+WEBHOOK_URL = f"{BASE_URL}/webhook" if BASE_URL else None
 
-# Configuração de logging
+# Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
+# Create Flask app
+app = Flask(__name__)
 
-# Decorator para verificar o método HTTP
-def post_only(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if request.method != 'POST':
-            return jsonify({"error": "Method not allowed"}), 405
-        return f(*args, **kwargs)
-    return decorated_function
+# Initialize bot and application
+bot = Bot(token=TOKEN)
+application = Application.builder().token(TOKEN).build()
 
+# Import handlers (versões síncronas)
+from handlers.commands import start, agenda, elenco, noticias
+from handlers.stickers import gritar, figurinhas
+from handlers.torcida import torcida_simulada, status_jogo, resposta_livre
+from handlers.quiz import iniciar_quiz, cancelar_quiz, PERGUNTA, receber_resposta
+from handlers.redes_sociais import redes_sociais
+from handlers.momentos import momentos_furia
 
-@app.route('/webhook', methods=['POST', 'GET'])
-@post_only
-async def webhook():
-    try:
-        # Verifica se o conteúdo é JSON
-        if not request.is_json:
-            return jsonify({"error": "Content-Type must be application/json"}), 400
-        
-        data = request.get_json()
-        update = Update.de_json(data, application.bot)
-        
-        # Processa a atualização
-        await application.process_update(update)
-        return '', 200
-        
-    except Exception as e:
-        logger.error(f"Error processing update: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+def register_handlers(app):
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("agenda", agenda))
+    app.add_handler(CommandHandler("elenco", elenco))
+    app.add_handler(CommandHandler("gritar", gritar))
+    app.add_handler(CommandHandler("torcida_simulada", torcida_simulada))
+    app.add_handler(CommandHandler("momentos", momentos_furia))
+    
+    app.add_handler(ConversationHandler(
+        entry_points=[CommandHandler("quiz", iniciar_quiz)],
+        states={PERGUNTA: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_resposta)]},
+        fallbacks=[CommandHandler("cancelar", cancelar_quiz)],
+    ))
+    
+    app.add_handler(CommandHandler("figurinhas", figurinhas))
+    app.add_handler(CommandHandler("statusjogo", status_jogo))
+    app.add_handler(CommandHandler("redes_sociais", redes_sociais))
+    app.add_handler(CommandHandler("noticias", noticias))
+    
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, resposta_livre))
 
+# Register handlers
+register_handlers(application)
 
 @app.route('/')
 def index():
-    return "FURIA Bot Webhook - POST requests to /webhook"
+    return 'FURIA Bot is running!'
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        update = Update.de_json(request.get_json(), bot)
+        application.process_update(update)
+        return '', 200
+    return 'Bad request', 400
 
-if __name__ == '__main__':
-    application.run_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get('PORT', 5000)),
-        webhook_url=os.getenv("URL") + "/webhook",
-        drop_pending_updates=True
-    )
+def set_webhook():
+    try:
+        bot.set_webhook(
+            url=WEBHOOK_URL,
+            drop_pending_updates=True
+        )
+        logger.info(f"Webhook configurado com sucesso em: {WEBHOOK_URL}")
+    except Exception as e:
+        logger.error(f"Erro ao configurar webhook: {e}")
+        raise
+
+if __name__ == "__main__":
+    # Verifica se as variáveis necessárias estão definidas
+    if not TOKEN or not BASE_URL:
+        logger.error("TOKEN e URL devem estar definidos no .env!")
+        exit(1)
+
+    # Configura o webhook
+    set_webhook()
+    
+    # Inicia o servidor Flask
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000))
