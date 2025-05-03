@@ -9,8 +9,18 @@ from telegram.ext import (
     ConversationHandler,
     CallbackContext
 )
+# Import handlers (versões síncronas)
+from handlers.commands import start, agenda, elenco, noticias
+from handlers.stickers import gritar, figurinhas
+from handlers.torcida import torcida_simulada, status_jogo, resposta_livre
+from handlers.quiz import iniciar_quiz, cancelar_quiz, PERGUNTA, receber_resposta
+from handlers.redes_sociais import redes_sociais
+from handlers.momentos import momentos_furia
+
 from dotenv import load_dotenv
 import os
+import asyncio
+
 
 # Load environment variables
 load_dotenv()
@@ -32,13 +42,6 @@ app = Flask(__name__)
 bot = Bot(token=TOKEN)
 application = Application.builder().token(TOKEN).build()
 
-# Import handlers (versões síncronas)
-from handlers.commands import start, agenda, elenco, noticias
-from handlers.stickers import gritar, figurinhas
-from handlers.torcida import torcida_simulada, status_jogo, resposta_livre
-from handlers.quiz import iniciar_quiz, cancelar_quiz, PERGUNTA, receber_resposta
-from handlers.redes_sociais import redes_sociais
-from handlers.momentos import momentos_furia
 
 def register_handlers(app):
     app.add_handler(CommandHandler("start", start))
@@ -75,9 +78,9 @@ def index():
 def webhook():
     try:
         update_data = request.get_json()
-        logger.info(f"Recebido update: {update_data}")  # loga o que chegou
+        logger.info(f"Recebido update: {update_data}")
         update = Update.de_json(update_data, bot)
-        application.process_update(update)
+        asyncio.run(application.process_update(update))
     except Exception as e:
         logger.error(f"Erro no webhook: {e}")
         return 'Erro interno', 500
