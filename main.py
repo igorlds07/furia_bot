@@ -61,20 +61,28 @@ def register_handlers(app):
     
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, resposta_livre))
 
+
 # Register handlers
 register_handlers(application)
+
 
 @app.route('/')
 def index():
     return 'FURIA Bot is running!'
 
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    if request.method == 'POST':
-        update = Update.de_json(request.get_json(), bot)
+    try:
+        update_data = request.get_json()
+        logger.info(f"Recebido update: {update_data}")  # loga o que chegou
+        update = Update.de_json(update_data, bot)
         application.process_update(update)
-        return '', 200
-    return 'Bad request', 400
+    except Exception as e:
+        logger.error(f"Erro no webhook: {e}")
+        return 'Erro interno', 500
+    return 'ok', 200
+
 
 def set_webhook():
     try:
