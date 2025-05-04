@@ -83,6 +83,7 @@ def webhook():
 
         async def process():
             await application.initialize()
+            await application.bot.initialize() 
             await application.process_update(update)
 
         asyncio.run(process())
