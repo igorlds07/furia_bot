@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import CallbackContext, ContextTypes
 from datetime import datetime
 import time  # Substitui o asyncio.sleep
-
+import asyncio  # Para manter a função assíncrona
 # Variável global mantida
 ULTIMO_STATUS = None
 
@@ -23,8 +23,8 @@ async def torcida_simulada(update: Update, context: CallbackContext):
     mensagens = random.sample(respostas_torcida, k=5)
     
     for mensagem in mensagens:
-        update.message.reply_text(mensagem)
-        time.sleep(5)  # Usando time.sleep em vez de asyncio.sleep
+        await update.message.reply_text(mensagem)
+        await asyncio.sleep(5)  
 
 
 ADVERSARIOS = ["NAVI", "Vitality", "G2 Esports", "FaZe Clan", "Team Liquid"]

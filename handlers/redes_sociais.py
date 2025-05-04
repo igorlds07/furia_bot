@@ -24,19 +24,3 @@ async def redes_sociais(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     # Enviar mensagem com os botões
     await update.message.reply_text(mensagem, reply_markup=reply_markup)
-
-    # URLs dos ícones
-    whatsapp_icon_url = "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-    instagram_icon_url = "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
-
-    # Enviar o ícone do WhatsApp
-    await update.message.reply_photo(
-        whatsapp_icon_url,
-        caption="Clique no ícone para conversar com a FURIA pelo WhatsApp! 📱"
-    )
-
-    # Enviar o ícone do Instagram
-    await update.message.reply_photo(
-        instagram_icon_url,
-        caption="Clique no ícone para seguir a FURIA no Instagram! 📸"
-    )

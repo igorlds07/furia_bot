@@ -12,11 +12,13 @@ stickers = [
     "CAACAgEAAxkBAAEOYYRoECtO5KyDjlLoGdlbrcY70om0bwAC4AoAAtj4gERgjrOurac1ezYE"
 ]
 
+
 # Função assíncrona para enviar figurinha com mensagem
 async def figurinhas(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sticker_id = random.choice(stickers)
     await update.message.reply_text("Aqui vai uma figurinha da FURIA!")
     await update.message.reply_sticker(sticker_id)
+
 
 # Função assíncrona para enviar apenas figurinha
 async def mandar_figurinha(update: Update, context: ContextTypes.DEFAULT_TYPE):
