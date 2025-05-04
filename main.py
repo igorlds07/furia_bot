@@ -85,6 +85,7 @@ def webhook():
             await application.initialize()
             await application.start()
             await application.process_update(update)
+            await application.shutdown()
 
         asyncio.run(process())
 
@@ -97,14 +98,17 @@ def webhook():
 
 def set_webhook():
     try:
-        bot.set_webhook(
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(application.initialize())
+        loop.run_until_complete(application.bot.set_webhook(
             url=WEBHOOK_URL,
             drop_pending_updates=True
-        )
+        ))
         logger.info(f"Webhook configurado com sucesso em: {WEBHOOK_URL}")
     except Exception as e:
         logger.error(f"Erro ao configurar webhook: {e}")
         raise
+
 
 if __name__ == "__main__":
     # Verifica se as variáveis necessárias estão definidas
