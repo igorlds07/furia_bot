@@ -1,6 +1,6 @@
 import random
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
 # Lista de stickers (mantida igual)
 stickers = [
@@ -12,15 +12,15 @@ stickers = [
     "CAACAgEAAxkBAAEOYYRoECtO5KyDjlLoGdlbrcY70om0bwAC4AoAAtj4gERgjrOurac1ezYE"
 ]
 
-# Função para enviar figurinha com mensagem
-def figurinhas(update: Update, context: CallbackContext):
+# Função assíncrona para enviar figurinha com mensagem
+async def figurinhas(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sticker_id = random.choice(stickers)
-    update.message.reply_text("Aqui vai uma figurinha da FURIA!")
-    update.message.reply_sticker(sticker_id)
+    await update.message.reply_text("Aqui vai uma figurinha da FURIA!")
+    await update.message.reply_sticker(sticker_id)
 
-# Função para enviar apenas figurinha
-def mandar_figurinha(update: Update, context: CallbackContext):
-    update.message.reply_sticker(random.choice(stickers))
+# Função assíncrona para enviar apenas figurinha
+async def mandar_figurinha(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_sticker(random.choice(stickers))
 
 # Lista de gritos da torcida
 gritos = [
@@ -31,9 +31,9 @@ gritos = [
     "A FURIA NUNCA DESISTE!"
 ]
 
-# Função para enviar grito aleatório
-def gritar(update: Update, context: CallbackContext):
-    update.message.reply_text(random.choice(gritos))
+# Função assíncrona para enviar grito aleatório
+async def gritar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(random.choice(gritos))
 
 # Lista de respostas da torcida simulada
 respostas_torcida = [
@@ -43,6 +43,6 @@ respostas_torcida = [
     "Vamos FURIA, é tudo nosso! 💛🖤"
 ]
 
-# Função para simular interação da torcida
-def torcida_simulada(update: Update, context: CallbackContext):
-    update.message.reply_text(random.choice(respostas_torcida))
+# Função assíncrona para simular interação da torcida
+async def torcida_simulada(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(random.choice(respostas_torcida))

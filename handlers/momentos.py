@@ -1,8 +1,8 @@
 import random
 from telegram import Update
-from telegram.ext import CallbackContext
+from telegram.ext import ContextTypes
 
-# Lista com momentos marcantes da FURIA (mantida igual)
+# Lista com momentos marcantes da FURIA
 momentos = [
     {
         "tipo": "vídeo",
@@ -21,29 +21,31 @@ momentos = [
     }
 ]
 
-# Função síncrona para o comando /momentos
-def momentos_furia(update: Update, context: CallbackContext):
-    # Escolhe aleatoriamente um momento
+
+# Handler assíncrono para o comando /momentos
+async def momentos_furia(update: Update, context: ContextTypes.DEFAULT_TYPE):
     momento = random.choice(momentos)
-    
-    # Monta a resposta baseada no tipo
+
     if momento["tipo"] == "vídeo":
-        update.message.reply_text(
+        await update.message.reply_text(
             f"🎥 {momento['titulo']}\nAssista esse momento épico da FURIA: {momento['url']}"
         )
-    
+
     elif momento["tipo"] == "imagem":
-        update.message.reply_photo(
+        await update.message.reply_photo(
             momento["url"],
             caption=f"📸 {momento['titulo']}"
         )
-    
+
     elif momento["tipo"] == "meme":
-        update.message.reply_text(
+        await update.message.reply_text(
             f"😂 {momento['titulo']}\nConfira esse meme clássico: {momento['url']}"
         )
-    
+
     elif momento["tipo"] == "destaque_jogador":
-        update.message.reply_text(
+        await update.message.reply_text(
             f"💥 {momento['titulo']}\nDestaque incrível: {momento['url']}"
         )
+
+    else:
+        await update.message.reply_text("❓ Momento desconhecido. Tente novamente mais tarde.")
