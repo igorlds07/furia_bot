@@ -83,10 +83,9 @@ def webhook():
             await application.initialize()
             await application.process_update(update)
 
-        loop = asyncio.get_event_loop()
-        if loop.is_closed():
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        # Cria e configura um novo loop de eventos para essa thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         loop.run_until_complete(process())
 
     except Exception as e:
