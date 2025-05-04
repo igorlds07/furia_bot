@@ -11,34 +11,26 @@ from telegram.ext import (
     filters,
     ConversationHandler,
 )
-
-# Import handlers
 from handlers.commands import start, agenda, elenco, noticias
 from handlers.stickers import gritar, figurinhas
 from handlers.torcida import torcida_simulada, status_jogo, resposta_livre
 from handlers.quiz import iniciar_quiz, cancelar_quiz, PERGUNTA, receber_resposta
 from handlers.redes_sociais import redes_sociais
 from handlers.momentos import momentos_furia
-
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 BASE_URL = os.getenv("URL")
 WEBHOOK_URL = f"{BASE_URL}/webhook" if BASE_URL else None
 
-# Configure logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Create Flask app
 app = Flask(__name__)
-
-# Initialize bot and application
 application = Application.builder().token(TOKEN).build()
 
 def register_handlers(app):
@@ -48,22 +40,18 @@ def register_handlers(app):
     app.add_handler(CommandHandler("gritar", gritar))
     app.add_handler(CommandHandler("torcida_simulada", torcida_simulada))
     app.add_handler(CommandHandler("momentos", momentos_furia))
-    
     app.add_handler(ConversationHandler(
         entry_points=[CommandHandler("quiz", iniciar_quiz)],
         states={PERGUNTA: [MessageHandler(filters.TEXT & ~filters.COMMAND, receber_resposta)]},
         fallbacks=[CommandHandler("cancelar", cancelar_quiz)],
     ))
-    
     app.add_handler(CommandHandler("figurinhas", figurinhas))
     app.add_handler(CommandHandler("statusjogo", status_jogo))
     app.add_handler(CommandHandler("redes_sociais", redes_sociais))
     app.add_handler(CommandHandler("noticias", noticias))
-    
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, resposta_livre))
 
 
-# Register handlers
 register_handlers(application)
 
 
@@ -75,12 +63,11 @@ def index():
 def webhook():
     try:
         update_data = request.get_json()
-        logger.info(f"Recebido update: {update_data}")
         update = Update.de_json(update_data, application.bot)
+        logger.info(f"Recebido update: {update_data}")
 
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(application.process_update(update))
-        loop.close()
+        # Executa no loop existente da aplicação
+        asyncio.run_coroutine_threadsafe(application.process_update(update), application.loop)
 
     except Exception as e:
         logger.error(f"Erro no webhook: {e}")
@@ -89,39 +76,18 @@ def webhook():
     return 'ok', 200
 
 
-def set_webhook():
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(application.initialize())
-        loop.run_until_complete(application.bot.set_webhook(
-            url=WEBHOOK_URL,
-            drop_pending_updates=True
-        ))
-        logger.info(f"Webhook configurado com sucesso em: {WEBHOOK_URL}")
-    except Exception as e:
-        logger.error(f"Erro ao configurar webhook: {e}")
-        raise
-
-# Iniciar o bot em paralelo
-def start_bot():
-    asyncio.run(_run_bot())
-
-
-async def _run_bot():
+async def _setup_webhook():
     await application.initialize()
+    await application.bot.set_webhook(url=WEBHOOK_URL, drop_pending_updates=True)
     await application.start()
-    logger.info("Bot iniciado e aguardando updates via webhook...")
+    logger.info("Bot iniciado com webhook configurado.")
+
+def start_bot():
+    asyncio.run(_setup_webhook())
 
 if __name__ == "__main__":
     if not TOKEN or not BASE_URL:
         logger.error("TOKEN e BASE_URL devem estar definidos no .env!")
-        exit(1)
-
-    try:
-        set_webhook()
-        logger.info("Webhook configurado com sucesso.")
-    except Exception as e:
-        logger.error(f"Erro ao configurar webhook: {e}")
         exit(1)
 
     # Inicia o bot em thread separada
