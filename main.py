@@ -72,7 +72,6 @@ def index():
     return "FURIA Bot is running!"
 
 
-# Webhook
 @app.route("/webhook", methods=["POST"])
 def webhook():
     try:
@@ -84,7 +83,11 @@ def webhook():
             await application.initialize()
             await application.process_update(update)
 
-        asyncio.run(process())
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        loop.run_until_complete(process())
 
     except Exception as e:
         logger.error(f"Erro no webhook: {e}")
