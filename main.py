@@ -1,19 +1,34 @@
-import logging
 import os
+import logging
 import asyncio
-from flask import Flask, request
+from fastapi import FastAPI, Request
 from telegram import Update
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    ConversationHandler,
-    filters,
-    ContextTypes,
-)
+from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, filters
 from dotenv import load_dotenv
 
-# Handlers
+# Carregar variáveis de ambiente
+dotenv_path = os.path.join(os.path.dirname(__file__), ".env")
+load_dotenv(dotenv_path)
+
+TOKEN = os.getenv("TOKEN")
+BASE_URL = os.getenv("URL")
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_URL = f"{BASE_URL}{WEBHOOK_PATH}"
+
+# Logging
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+# FastAPI app
+app = FastAPI()
+
+# Telegram Application
+telegram_app = Application.builder().token(TOKEN).build()
+
+# Importar handlers (ajuste para seu projeto)
 from handlers.commands import start, agenda, elenco, noticias
 from handlers.stickers import gritar, figurinhas
 from handlers.torcida import torcida_simulada, status_jogo, resposta_livre
@@ -21,33 +36,12 @@ from handlers.quiz import iniciar_quiz, cancelar_quiz, PERGUNTA, receber_respost
 from handlers.redes_sociais import redes_sociais
 from handlers.momentos import momentos_furia
 
-# Carregar variáveis de ambiente
-load_dotenv()
-TOKEN = os.getenv("TOKEN")
-BASE_URL = os.getenv("URL")
-WEBHOOK_URL = f"{BASE_URL}/webhook" if BASE_URL else None
-
-# Logger
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO
-)
-logger = logging.getLogger(__name__)
-
-# Flask App
-app = Flask(__name__)
-
-# Telegram Application
-application = Application.builder().token(TOKEN).build()
-
-
 # Registrar handlers
 def register_handlers(app):
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("agenda", agenda))
     app.add_handler(CommandHandler("elenco", elenco))
     app.add_handler(CommandHandler("gritar", gritar))
-    app.add_handler(CommandHandler("torcida_simulada", torcida_simulada))
     app.add_handler(CommandHandler("momentos", momentos_furia))
     app.add_handler(CommandHandler("figurinhas", figurinhas))
     app.add_handler(CommandHandler("statusjogo", status_jogo))
@@ -62,59 +56,28 @@ def register_handlers(app):
 
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, resposta_livre))
 
+register_handlers(telegram_app)
 
-register_handlers(application)
+# Endpoint raiz
+@app.get("/")
+def root():
+    return {"message": "FURIA Bot is live with FastAPI!"}
 
-
-# Rota raiz
-@app.route("/")
-def index():
-    return "FURIA Bot is running!"
-
-
-@app.route("/webhook", methods=["POST"])
-def webhook():
+# Endpoint do webhook
+@app.post(WEBHOOK_PATH)
+async def handle_webhook(request: Request):
     try:
-        update_data = request.get_json()
-        logger.info(f"Recebido update: {update_data}")
-        update = Update.de_json(update_data, application.bot)
-
-        async def process():
-            await application.initialize()
-            await application.process_update(update)
-
-        # Cria e configura um novo loop de eventos para essa thread
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(process())
-
+        data = await request.json()
+        update = Update.de_json(data, telegram_app.bot)
+        await telegram_app.process_update(update)
     except Exception as e:
-        logger.error(f"Erro no webhook: {e}")
-        return "Erro interno", 500
+        logger.error(f"Erro no processamento do webhook: {e}")
+        return {"status": "error"}
+    return {"status": "ok"}
 
-    return "ok", 200
-
-
-# Webhook setup
-def set_webhook():
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(application.initialize())
-        loop.run_until_complete(application.bot.set_webhook(
-            url=WEBHOOK_URL,
-            drop_pending_updates=True
-        ))
-        logger.info(f"Webhook configurado com sucesso em: {WEBHOOK_URL}")
-    except Exception as e:
-        logger.error(f"Erro ao configurar webhook: {e}")
-        raise
-
-
-# Start
-if __name__ == "__main__":
-    if not TOKEN or not BASE_URL:
-        logger.error("TOKEN e URL devem estar definidos no .env!")
-        exit(1)
-
-    set_webhook()
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+# Inicializa Webhook no Telegram
+@app.on_event("startup")
+async def on_startup():
+    await telegram_app.initialize()
+    await telegram_app.bot.set_webhook(url=WEBHOOK_URL, drop_pending_updates=True)
+    logger.info(f"Webhook configurado: {WEBHOOK_URL}")
