@@ -111,14 +111,16 @@ def set_webhook():
 
 
 if __name__ == "__main__":
-    # Verifica se as variáveis necessárias estão definidas
     if not TOKEN or not BASE_URL:
-        logger.error("TOKEN e URL devem estar definidos no .env!")
+        logger.error("TOKEN e BASE_URL devem estar definidos no .env!")
         exit(1)
 
-    # Configura o webhook
-    set_webhook()
-    
-    # Inicia o servidor Flask
+    try:
+        set_webhook()
+        logger.info("Webhook configurado com sucesso.")
+    except Exception as e:
+        logger.error(f"Erro ao configurar webhook: {e}")
+        exit(1)
+
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
