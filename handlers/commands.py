@@ -59,6 +59,7 @@ async def elenco(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     await update.message.reply_text("🎮 Line-up atual da FURIA:\n" + "\n".join(jogadores))
 
+
 async def noticias(update: Update, context: ContextTypes.DEFAULT_TYPE):
     noticia_escolhida = random.choice(noticias_furia)
     await update.message.reply_text(noticia_escolhida)
