@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Initialize bot and application
-bot = Bot(token=TOKEN)
+
 application = Application.builder().token(TOKEN).build()
 
 
@@ -79,11 +79,10 @@ def webhook():
     try:
         update_data = request.get_json()
         logger.info(f"Recebido update: {update_data}")
-        update = Update.de_json(update_data, bot)
+        update = Update.de_json(update_data, application.bot)   
 
         async def process():
             await application.initialize()
-            await application.bot.initialize() 
             await application.start()
             await application.process_update(update)
 
